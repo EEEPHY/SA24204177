@@ -1,0 +1,1307 @@
+---
+title: "homework"
+author: "Yifei Zhu"
+date: "2023-12-08"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{homework}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# HW0
+
+## Example 1 正弦函数和余弦函数图像
+
+```{r}
+x<-seq(0,2*pi,length=300)
+plot(x,sin(x),type = 'l',col="green",
+     main = "Sine function and cosine function image",
+     ylab = "value of function",axes = FALSE)#正弦
+lines(x,cos(x),col="yellow")#余弦
+legend(0,-0.5,col =c("green","yellow"),
+       lty = c(1,1),lwd=c(2,2),legend = c("sin","cos"))#图例
+axis(2)#纵坐标
+axis(1,at=(0:4)/2*pi,labels =
+       c(0,expression(pi/2),expression(pi),
+         expression(3*pi/2),expression(2*pi)))#横坐标
+```
+
+## Example 2 班级成绩
+
+```{r}
+set.seed(1234)
+d1<-floor(runif(10,70,100))
+d2<-floor(runif(10,70,100))
+d3<-floor(runif(10,70,100))
+score<-data.frame(1:10,d1,d2,d3,d1+d2+d3)
+colnames(score)<-c("学号","语文","数学","英语","总分")
+score
+```
+
+## Example 3 汽车发动机排量与耗油量散点图
+
+```{r}
+library(ggplot2)
+ggplot(data=mpg,aes(x=displ,y=hwy,color=class))+geom_point()
+```
+
+
+
+# HW1
+
+## 第一题 3.4
+
+由于$f(x)=\frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}$，因此分布函数$$F(y)=\int_0^y\frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}dx=\int_0^ye^{-x^2/(2\sigma^2)}d\frac{x^2}{2\sigma^2}$$
+令$t=\frac{x^2}{2\sigma^2}$，则$$F(y)=\int_0^{\frac{y^2}{2\sigma^2}}e^{-t}dt=1-e^{-\frac{y^2}{2\sigma^2}}$$
+则$$F^{-1}(u)=\sqrt{-2\sigma^2ln(1-u)}$$
+
+```{r}
+RL<-function(sigma){#Rayleigh分布的产生函数
+  n<-1000
+  u<-runif(n)
+  x<-sqrt(-2*sigma^2*log(1-u))
+  return(x)
+}
+```
+
+当$\sigma=1$时，随机数直方图及概率密度函数曲线如图所示：
+
+```{r}
+sig<-1
+hist(RL(sig),prob=TRUE,xlab = "x",main = "Rayleigh(1)",ylim=c(0,0.7))
+y<-seq(0,10,0.01)
+lines(y,(y/sig^2)*exp(-(y^2)/(2*sig^2)))
+```
+当$\sigma=2$时，随机数直方图及概率密度函数曲线如图所示：
+
+```{r}
+sig<-2
+hist(RL(sig),prob=TRUE,xlab = "x",main = "Rayleigh(2)")
+y<-seq(0,10,0.01)
+lines(y,(y/sig^2)*exp(-(y^2)/(2*sig^2)))
+```
+当$\sigma=4$时，随机数直方图及概率密度函数曲线如图所示：
+
+```{r}
+sig<-4
+hist(RL(sig),prob=TRUE,xlab = "x",main = "Rayleigh(4)",ylim = c(0,0.18))
+y<-seq(0,15,0.01)
+lines(y,(y/sig^2)*exp(-(y^2)/(2*sig^2)))
+```
+由此可见，在给定几种$\sigma>0$的情况下，随机数直方图与概率密度函数曲线均吻合得较好。
+
+## 第二题 3.11
+
+混合分布的概率密度函数为$$f(x)=p_1\frac{1}{\sqrt{2\pi}}e^{-\frac{x^2}{2}}+(1-p_1)\frac{1}{\sqrt{2\pi}}e^{-\frac{(x-3)^2}{2}}$$
+当$p_1=0.75$时：
+```{r}
+set.seed(1234)
+N<-1000
+p1<-0.75
+x1<-rnorm(N,0,1)
+x2<-rnorm(N,3,1)
+M<-matrix(0,N,2)
+for (i in 1:N) {
+  M[i,sample(x=c(1,2),size = 1,prob = c(p1,1-p1))]<-1
+}
+x0<-x1*M[,1]+x2*M[,2]#产生混合正态分布随机数
+hist(x0,prob=TRUE,ylim =c(0,0.3),main = "p1=0.75")
+y<-seq(-4,6,0.01)
+lines(y,p1/sqrt(2*pi)*exp(-y^2/2)+(1-p1)/sqrt(1*pi)*exp(-(y-3)^2/2))
+```
+观察图像，可以看出图像似乎是双峰混合的。
+
+改变$p_1$的取值，当$p_1=0.5$时：
+```{r}
+set.seed(1234)
+N<-1000
+p1<-0.5
+x1<-rnorm(N,0,1)
+x2<-rnorm(N,3,1)
+M<-matrix(0,N,2)
+for (i in 1:N) {
+  M[i,sample(x=c(1,2),size = 1,prob = c(p1,1-p1))]<-1
+}
+x0<-x1*M[,1]+x2*M[,2]#产生混合正态分布随机数
+hist(x0,prob=TRUE,ylim =c(0,0.3),main = "p1=0.5")
+y<-seq(-4,6,0.01)
+lines(y,p1/sqrt(2*pi)*exp(-y^2/2)+(1-p1)/sqrt(1*pi)*exp(-(y-3)^2/2))
+```
+当$p_1=0.25$时：
+```{r}
+set.seed(1234)
+N<-1000
+p1<-0.25
+x1<-rnorm(N,0,1)
+x2<-rnorm(N,3,1)
+M<-matrix(0,N,2)
+for (i in 1:N) {
+  M[i,sample(x=c(1,2),size = 1,prob = c(p1,1-p1))]<-1
+}
+x0<-x1*M[,1]+x2*M[,2]#产生混合正态分布随机数
+hist(x0,prob=TRUE,ylim =c(0,0.5),main = "p1=0.25")
+y<-seq(-4,6,0.01)
+lines(y,p1/sqrt(2*pi)*exp(-y^2/2)+(1-p1)/sqrt(1*pi)*exp(-(y-3)^2/2))
+```
+
+因此可以推测，当$p_1=0.5$时，图像会出现双峰的情况。
+
+## 第三题 3.20
+
+取泊松分布参数$\lambda=10$，伽马分布参数$\alpha=0.5$,$\beta=2$：
+```{r}
+set.seed(1234)
+t<-10
+lambda<-10
+alpha<-0.5
+beta<-2
+m<-1000#取1000次重复实验
+X_t<-rep(0,m)
+Y_1<-rep(0,m)
+for(i in 1:m){
+  N<-rpois(t,lambda*t)
+Y<-rgamma(N[t],shape = 0.5,rate = 2)
+X_t[i]<-sum(Y)
+Y_1[i]<-Y[1]
+}
+mean(X_t)#E[X(t)]
+lambda*t*mean(Y_1)
+var(X_t)#Var(X(t))
+lambda*t*mean(Y_1^2)
+```
+观察结果可知，在本次参数的设定下，$E[X(t)]$与$\lambda tE[Y_1]$近似相等，$Var(X(t))$与$\lambda tE[Y_1^2]$近似相等。
+
+更改参数，取泊松分布参数$\lambda=12$，伽马分布参数$\alpha=2$，$\beta=0.3$：
+```{r}
+set.seed(1234)
+t<-10
+lambda<-12
+alpha<-2
+beta<-0.3
+m<-1000#取1000次重复实验
+X_t<-rep(0,m)
+Y_1<-rep(0,m)
+for(i in 1:m){
+  N<-rpois(t,lambda*t)
+Y<-rgamma(N[t],shape = 0.5,rate = 2)
+X_t[i]<-sum(Y)
+Y_1[i]<-Y[1]
+}
+mean(X_t)#E[X(t)]
+lambda*t*mean(Y_1)
+var(X_t)#Var(X(t))
+lambda*t*mean(Y_1^2)
+```
+取泊松分布参数$\lambda=5$，伽马分布参数$\alpha=0.8$，$\beta=5$：
+```{r}
+set.seed(1234)
+t<-10
+lambda<-5
+alpha<-0.8
+beta<-5
+m<-1000#取1000次重复实验
+X_t<-rep(0,m)
+Y_1<-rep(0,m)
+for(i in 1:m){
+  N<-rpois(t,lambda*t)
+Y<-rgamma(N[t],shape = 0.5,rate = 2)
+X_t[i]<-sum(Y)
+Y_1[i]<-Y[1]
+}
+mean(X_t)#E[X(t)]
+lambda*t*mean(Y_1)
+var(X_t)#Var(X(t))
+lambda*t*mean(Y_1^2)
+```
+
+取泊松分布参数$\lambda=15$，伽马分布参数$\alpha=5$，$\beta=8$：
+```{r}
+set.seed(1234)
+t<-10
+lambda<-15
+alpha<-5
+beta<-8
+m<-1000#取1000次重复实验
+X_t<-rep(0,m)
+Y_1<-rep(0,m)
+for(i in 1:m){
+  N<-rpois(t,lambda*t)
+Y<-rgamma(N[t],shape = 0.5,rate = 2)
+X_t[i]<-sum(Y)
+Y_1[i]<-Y[1]
+}
+mean(X_t)#E[X(t)]
+lambda*t*mean(Y_1)
+var(X_t)#Var(X(t))
+lambda*t*mean(Y_1^2)
+```
+
+综上所述，在多次改变泊松分布与伽马分布参数的情况下，可以观察到$X(10)$的均值和方差均与理论值近似相等。
+
+
+# HW2
+
+## 5.4
+
+Beta(3,3)的概率密度函数为：$$f(x;3,3)=\frac{1}{B(3,3)}x^2(1-x)^2$$
+其中$B(3,3)=\int_0^1t^2(1-t)^2dt=\frac{1}{30}$
+因此$$f(x;3,3)=30x^2(1-x)^2$$
+$$F(x)=\int_0^x30u^2(1-u)^2du$$
+令$y=u/x$，则$du=xdy$，且$$\theta=\int_0^130x^3y^2(1-xy)^2dy$$
+因此$\theta=E_Y[30x^3Y^2(1-xY)^2]$
+```{r}
+x<-seq(0.1,0.9,0.1)
+m<-10000
+u<-runif(m)#Y~U(0,1)
+cdf<-numeric(length(x))
+for (i in 1:length(x)) {
+  g<-30*x[i]^3*u^2*(1-x[i]*u)^2
+  cdf[i]<-mean(g)
+}
+Phi<-pbeta(x,3,3)
+print(round(rbind(x,cdf,Phi),3))
+```
+
+## 5.9
+
+```{r}
+RL_sam<-function(sigma,R=1000,antithetic=TRUE){#服从Rayleigh分布的样本产生函数
+  u<-runif(R/2)
+  if(!antithetic){
+    v<-runif(R/2)
+    }
+  else{
+    v<-1-u
+  }
+  u<-c(u,v)
+  x<-sqrt(-2*sigma^2*log(1-u))
+  return(mean(x))
+}
+RL_sam(2,R=1000)
+RL_sam(5)
+RL_sam(0.2)
+```
+
+取$\sigma=2$
+
+```{r}
+set.seed(1234)
+m<-1000
+MC1<-MC2<-numeric(m)
+sig<-2
+for (i in 1:m) {
+  MC1[i]<-RL_sam(sigma = sig,R=1000,antithetic = FALSE)#普通独立抽样
+  MC2[i]<-RL_sam(sigma = sig,R=1000)#对偶
+}
+print(sd(MC1))
+print(sd(MC2))
+round((var(MC1)-var(MC2))/var(MC1),4)
+
+```
+由此可见，在$\sigma=2$条件下，使用对偶变量法可以使方差缩减达到94.46%
+
+取$\sigma=0.5$
+
+```{r}
+set.seed(1234)
+m<-1000
+MC1<-MC2<-numeric(m)
+sig<-0.5
+for (i in 1:m) {
+  MC1[i]<-RL_sam(sigma = sig,R=1000,antithetic = FALSE)#普通独立抽样
+  MC2[i]<-RL_sam(sigma = sig,R=1000)#对偶
+}
+
+print(sd(MC1))
+print(sd(MC2))
+round((var(MC1)-var(MC2))/var(MC1),4)
+```
+由此可见，在$\sigma=0.5$条件下，使用对偶变量法可以使方差缩减达到94.46%
+
+## 5.13
+
+选择$f_1=\frac{1}{\sqrt{2\pi}}e^{-x^2/2}$（标准正态分布）
+$f_2=xe^{-x^2/2}$(Rayleigh(1)分布)
+
+```{r}
+set.seed(1234)
+m<-10000
+theta.hat<-se<-numeric(2)
+g<-function(x){
+  x^2/sqrt(2*pi)*exp(-x^2/2)*(x>1)
+}
+x<-rnorm(m)#令f1为重要函数
+fg<-g(x)/dnorm(x)
+theta.hat[1]<-mean(fg)
+se[1]<-sd(fg)
+
+u<-runif(m)#令f2为重要函数，并使用逆变换法
+x<-sqrt(-2*log(1-u))
+fg<-g(x)/(x*exp(-x^2/2))
+theta.hat[2]<-mean(fg)
+se[2]<-sd(fg)
+
+rbind(theta.hat,se)
+```
+
+观察结果可知使用重要函数$f_2=xe^{-x^2/2}$产生的方差更小，原因是$f_2$与待估计的$g(x)$更加接近
+
+## 蒙特卡洛实验
+
+```{r}
+
+quick_sort<-function(x){
+  num<-length(x)
+  if(num==0||num==1){return(x)
+  }else{
+    a<-x[1]
+    y<-x[-1]
+    lower<-y[y<a]
+    upper<-y[y>=a]
+    return(c(quick_sort(lower),a,quick_sort(upper)))}
+}
+
+time_com<-function(N){
+  a<-numeric(100)
+for (i in 1:100) {
+  test<-sample(1:N)
+a[i]<-system.time(quick_sort(test))[1]
+}
+return(mean(a))
+}
+
+t_fun<-function(n){
+  return(n*log(n))
+}
+```
+
+
+
+```{r}
+set.seed(1234)
+an<-c(time_com(1e4),time_com(2e4),time_com(4e4),time_com(6e4),time_com(8e4))
+tn<-c(t_fun(1e4),t_fun(2e4),t_fun(4e4),t_fun(6e4),t_fun(8e4))
+```
+
+```{r}
+plot(tn,an)
+abline(lm(an~tn)$coef[1],lm(an~tn)$coef[2])
+```
+
+
+# HW3
+
+## 第一题6.6
+
+```{r}
+set.seed(1234)
+m<-1000
+sk<-numeric(m)
+for (i in 1:m) {
+  x<-rnorm(1000)
+  sk[i]<-mean(((x-mean(x))/sd(x))^3)
+}
+
+p<-c(0.025,0.05,0.95,0.975)
+q_mc<-quantile(sk,p)
+sd_sk<-numeric(4)
+for(i in 1:4){
+  sd_sk[i]<-sqrt(p[i]*(1-p[i])/(m*dnorm(q_mc[i],0,sqrt(6/m))^2))
+}
+q_mc#蒙特卡洛估计分位数
+qnorm(p,0,sqrt(6/m))#大样本近似分位数
+sd_sk#标准差
+```
+观察结果可知，由蒙特卡洛方法估计出的分位数与大样本近似分位数较为接近。
+
+
+## 第二题6.B
+
+```{r}
+library(MASS)
+set.seed(123)
+n<-100
+mu<-c(0,0) 
+sigma <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
+data <- mvrnorm(n, mu, sigma)#产生(X,Y)
+
+pearson_test <- cor.test(data[,1],data[,2],method = "pearson")#Pearson相关系数检验
+pearson_test$p.value
+
+spearman_test <- cor.test(data[,1],data[,2],method = "spearman")#Spearman秩相关系数检验
+spearman_test$p.value
+
+kendall_test <- cor.test(data[,1],data[,2],method = "kendall")#Kendall系数检验
+kendall_test$p.value
+```
+
+观察结果可知，Pearson相关系数检验的p值最小，即拥有比Spearman秩相关系数检验和Kendall系数检验更好的经验功效。
+
+一个特例：$y=2x^2+e$
+
+```{r}
+set.seed(123)
+n<-100
+X0<-rnorm(n)
+Y0<-2*X0^2+rnorm(n)
+
+pearson_test <- cor.test(X0,Y0,method = "pearson")#Pearson相关系数检验
+pearson_test$p.value
+
+spearman_test <- cor.test(X0,Y0,method = "spearman")#Spearman秩相关系数检验
+spearman_test$p.value
+
+kendall_test <- cor.test(X0,Y0,method = "kendall")#Kendall系数检验
+kendall_test$p.value
+```
+在这种情况下，Kendall系数检验的p值最小，即拥有比Pearson相关系数检验更好的经验功效。
+
+## 第三题 
+
+If we obtain the powers for two methods under a particular simulation setting with 10,000 experiments: say, 0.651 for one method and 0.676 for another method. We want to know if the powers are different at 0.05 level.
+1. What is the corresponding hypothesis test problem?
+2. What test should we use? Z-test, two-sample t-test, paired-t-test or McNemar test? Why?
+3. Please provide the least necessary information for hypothesis testing.
+
+1.对应的假设检验为：
+$H_0$：两种方法的功效相同
+$H_1$：两种方法的功效不同
+
+2.应该采用Z检验方法，因为试验次数足够大，且不是配对数据，也不是二分数据。
+
+3.设$p_1=0.651$，$p_2=0.676$，则在显著性水平$\alpha=0.05$下，Z检验统计量为
+$$Z=\frac{p_1-p_2}{\sqrt{p(1-p)(\frac{1}{n_1}+\frac{1}{n_2})}}$$
+
+
+其中：$p=\frac{p_1 + p_2}{2} = \frac{0.651 + 0.676}{2} = 0.6635$，$n_1=n_2=10000$
+因此，$Z=\frac{p_1-p_2}{\sqrt{p(1-p)(\frac{1}{n_1}+\frac{1}{n_2})}} \approx -3.09$
+```{r}
+1-pnorm(3.09)
+```
+
+由于p值=0.001，小于显著性水平$\alpha$（0.05），因此拒绝$H_0$，并得出结论：在显著性水平为0.05下，两种方法的功效是不同的。
+
+
+# 课堂作业
+
+```{r}
+set.seed(1234)
+ d1 <- c(-2.961, 0.478, -0.391, -0.869, -0.460, 
+            -0.937, 0.779, -1.409, 0.027, -1.569)
+d2  <- c(1.608, 1.009,  0.878,  1.600, -0.263,  
+             0.680, 2.280,  2.390, 1.793,  8.091, 1.468)
+mean_d1 <- mean(d1)  
+mean_d2 <- mean(d2)  
+  
+# 计算均值差异  
+mean_diff <- mean_d2 - mean_d1  
+
+# 计算样本标准误差  
+n1 <- length(d1)  
+n2 <- length(d2)  
+se_diff <- sqrt((sd(d1)^2 / n1) + (sd(d2)^2 / n2))  
+ 
+R <- 10000  
+  
+bootstrap_diffs <- numeric(R)  
+  
+# 生成自助样本并计算均值差异  
+for (i in 1:R) {  
+  d1_bootstrap <- sample(d1, replace = TRUE)  
+  d2_bootstrap <- sample(d2, replace = TRUE)  
+  mean_d1_bootstrap <- mean(d1_bootstrap)  
+  mean_d2_bootstrap <- mean(d2_bootstrap)  
+  bootstrap_diffs[i] <- mean_d2_bootstrap - mean_d1_bootstrap  
+}  
+  
+# 计算自助标准误差  
+bootstrap_se_diff <- sd(bootstrap_diffs)  
+  
+round(c(bias=mean(bootstrap_diffs)-mean_diff,se.boot=bootstrap_se_diff,se.samp=se_diff),3)
+```
+# HW4
+
+## 1.
+
+Of N = 1000 hypotheses, 950 are null and 50 are alternative.
+The p-value under any null hypothesis is uniformly distributed
+(use runif), and the p-value under any alternative hypothesis
+follows the beta distribution with parameter 0.1 and 1 (use
+rbeta). Obtain Bonferroni adjusted p-values and B-H adjusted
+p-values. Calculate FWER, FDR, and TPR under nominal level
+α = 0.1 for each of the two adjustment methods based on
+m = 10000 simulation replicates. You should output the 6
+numbers (3 ) to a 3 × 2 table (column names: Bonferroni
+correction, B-H correction; row names: FWER, FDR, TPR).
+Comment the results.
+
+```{r}
+set.seed(1234)
+N <- 1000  
+n1 <- 950  #null 
+n2 <- 50   #alter
+alpha <- 0.1  
+m <- 10000   
+  
+fwer_bf <- numeric(m)  
+fdr_bf <- numeric(m)  
+tpr_bf <- numeric(m)  
+  
+fwer_bh <- numeric(m)  
+fdr_bh <- numeric(m)  
+tpr_bh <- numeric(m)  
+  
+for (i in 1:m) {  
+  #生成p值  
+  p_values <- c(runif(n1), rbeta(n2, 0.1, 1))  
+    
+  #调整p值  
+  bf_adjusted_p_values <- rbind(p.adjust(p_values, method = "bonferroni"))  
+  bh_adjusted_p_values <- rbind(p.adjust(p_values, method = "BH"))  
+    
+  #拒绝  
+  bf_rejected <- bf_adjusted_p_values < alpha  
+  bh_rejected <- bh_adjusted_p_values < alpha  
+    
+  # 计算FWER, FDR, TPR  
+  fwer_bf[i] <- any(bf_rejected[1:n1])  
+  fdr_bf[i] <- sum(bf_rejected[1:n1]) / sum(bf_rejected)  
+  tpr_bf[i] <- sum(bf_rejected[(n1+1):N]) / n2  
+  fwer_bh[i] <- any(bh_rejected[1:n1])  
+  fdr_bh[i] <- sum(bh_rejected[1:n1]) / sum(bh_rejected)  
+  tpr_bh[i] <- sum(bh_rejected[(n1+1):N]) / n2  
+}  
+  
+fwer_bf_mean <- mean(fwer_bf)  
+fdr_bf_mean <- mean(fdr_bf)  
+tpr_bf_mean <- mean(tpr_bf)  
+fwer_bh_mean <- mean(fwer_bh)  
+fdr_bh_mean <- mean(fdr_bh)  
+tpr_bh_mean <- mean(tpr_bh)  
+ 
+results <- rbind(  
+  c(fwer_bf_mean, fwer_bh_mean),  
+  c(fdr_bf_mean, fdr_bh_mean),  
+  c(tpr_bf_mean, tpr_bh_mean)  
+)  
+colnames(results) <- c("Bonferroni", "BH")  
+rownames(results) <- c("FWER", "FDR", "TPR")  
+  
+print(results)  
+  
+```
+
+
+FWER：Bonferroni方法的FWER小于显著性水平0.1。B-H方法则相对不那么保守，它的FWER明显更大。
+
+
+FDR：两种方法都小于显著性水平0.1
+
+
+TPR：Bonferroni方法的TPR较低，表明它在保持低FDR的同时，可能会错过一些真正的效应。B-H方法则能发现更多的真正备择假设，因此其TPR更高。
+
+
+## 2.
+
+由于故障间隔时间服从$Exp(\lambda)$分布，因此其概率密度函数为$f(t)=\lambda e^{-\lambda t}$
+在给定数据$x_1,\ldots,x_n$下，似然函数为$$L(\lambda)=\prod_{i=1}^n f(x_i)=\prod_{i=1}^n \lambda e^{-\lambda x_i}=\lambda e^{-\lambda \sum_{i=1}^n x_i}$$
+对数似然函数为$$l(\lambda)=nln(\lambda)-\lambda \sum_{i=1}^n x_i$$
+$$\frac{\partial l(\lambda)}{\partial \lambda}=\frac{n}{\lambda}-\sum_{i=1}^n x_i=0$$
+$$\hat{\lambda}=\frac{n}{\sum_{i=1}^n x_i}$$
+```{r}
+library(boot)
+set.seed(1234)
+data<-as.vector(aircondit$hours)
+#极大似然函数 
+mle_lambda <- function(data, indices) { 
+  n <- length(data[indices])  
+  return(n / sum(data[indices]))  
+}  
+obj<-boot(data,statistic = mle_lambda,R=1e4)
+obj
+```
+
+## 3.
+
+```{r}
+set.seed(1234)
+m<-1e3
+ci.norm<-ci.basic<-ci.perc<-ci.bca<-matrix(NA,m,2)
+for (i in 1:m) {
+  de<-boot(data,statistic = mle_lambda,R=999)
+  ci<-boot.ci(de,type = c("norm","basic","perc","bca"))
+  ci.norm[i,]<-ci$norm[2:3]
+  ci.basic[i,]<-ci$basic[4:5]
+  ci.perc[i,]<-ci$percent[4:5]
+  ci.bca[i,]<-ci$bca[4:5]
+}
+cat("normal:", mean(ci.norm[,1]),mean(ci.norm[,2]), "\n")  
+cat("basic:", mean(ci.basic[,1]),mean(ci.basic[,2]), "\n")  
+cat("percentile:", mean(ci.perc[,1]),mean(ci.perc[,2]), "\n")  
+cat("bca:", mean(ci.bca[,1]),mean(ci.bca[,2]), "\n")
+```
+
+由于时间间隔服从指数分布，并不是正态的，因此normal方法与basic方法不够准确；在这种分布下，percentile方法与bca方法较为准确，它们之间也比较接近。
+
+
+
+# HW5
+
+## 1.
+
+7.8
+
+```{r}
+library(bootstrap)
+df<-scor
+sort_eigen<- sort(eigen(cov(df))$values, decreasing = TRUE)  
+theta_hat <- sort_eigen[1] / sum(sort_eigen)
+n <- nrow(df)  
+jackknife_estimates <- numeric(n)  
+for (i in 1:n) {  
+  leave_one_out <- df[-i, ] 
+  sample_cov_matrix <- cov(leave_one_out)  
+  eigenvalues <- eigen(sample_cov_matrix)$values  
+  sorted_eigenvalues <- sort(eigenvalues, decreasing = TRUE)  
+  jackknife_estimates[i] <- sorted_eigenvalues[1] / sum(sorted_eigenvalues)  
+}  
+bias.jack<-(n-1)*(mean(jackknife_estimates)-theta_hat)
+se.jack<-sqrt((n-1)*mean((jackknife_estimates-theta_hat)^2))
+round(c(original=theta_hat,bias.jack=bias.jack,se.jack=se.jack),3)
+```
+
+## 2.
+
+7.10
+
+```{r}
+set.seed(1234)
+library(DAAG)
+attach(ironslag)
+n <- length(magnetic) #in DAAG ironslag
+e1 <- e2 <- e3 <- e4 <- numeric(n)
+
+for (k in 1:n) {
+y <- magnetic[-k]
+x <- chemical[-k]
+
+J1 <- lm(y ~ x)
+yhat1 <- J1$coef[1] + J1$coef[2] * chemical[k]
+e1[k] <- magnetic[k] - yhat1
+
+J2 <- lm(y ~ x + I(x^2))
+yhat2 <- J2$coef[1] + J2$coef[2] * chemical[k] +J2$coef[3] * chemical[k]^2
+e2[k] <- magnetic[k] - yhat2
+
+J3 <- lm(log(y) ~ x)
+logyhat3 <- J3$coef[1] + J3$coef[2] * chemical[k]
+yhat3 <- exp(logyhat3)
+e3[k] <- magnetic[k] - yhat3
+
+J4 <- lm(y ~ x + I(x^2) + I(x^3))  
+yhat4 <- J4$coef[1] + J4$coef[2] * chemical[k] + J4$coef[3] * chemical[k]^2 + J4$coef[4] * chemical[k]^3  
+e4[k] <- magnetic[k] - yhat4  
+}
+
+c(mean(e1^2), mean(e2^2), mean(e3^2), mean(e4^2))
+```
+
+由交叉验证结果可知，应该选择模型2
+
+```{r}
+L1 <- lm(magnetic ~ chemical)
+L2 <- lm(magnetic ~ chemical + I(chemical^2))
+L3 <- lm(log(magnetic) ~ chemical)
+L4 <- lm(magnetic ~ chemical + I(chemical^2)+ I(chemical^3))
+c(summary(L1)$adj.r.squared,summary(L2)$adj.r.squared,summary(L3)$adj.r.squared,summary(L4)$adj.r.squared)
+```
+
+由adjusted $R^2$结果可知，应该选择模型2
+
+## 3.
+
+8.1
+
+```{r}
+set.seed(1234)
+attach(chickwts)
+x <- sort(as.vector(weight[feed == "soybean"]))
+y <- sort(as.vector(weight[feed == "linseed"]))
+detach(chickwts)
+
+cvm_statistic <- function(x, y) {  
+  n <- length(x)  
+  m <- length(y)  
+  Fn <- ecdf(x)  
+  Gm <- ecdf(y)  
+  cvm <- m*n/((m+n)^2)*(sum((Fn(x)-Gm(x))^2)+sum((Fn(y)-Gm(y))^2)) 
+  return(cvm)  
+}
+
+R <- 999 #number of replicates
+z <- c(x, y) #pooled sample
+K <- 1:26
+reps <- numeric(R) #storage for replicates
+cvm0 <- cvm_statistic(x, y)
+for (i in 1:R) {
+#generate indices k for the first sample
+k <- sample(K, size = 14, replace = FALSE)
+x1 <- z[k]
+y1 <- z[-k] #complement of x1
+reps[i] <- cvm_statistic(x1, y1)
+}
+p<-mean(c(cvm0,reps)>=cvm0)
+p
+```
+
+p值为0.414,因此拒绝原假设
+
+## 4.
+
+8.2
+
+```{r}
+set.seed(123) 
+n<-50
+x <- rnorm(n)
+y <- 0.5 * x + rnorm(n)# x服从标准正态分布，y与x有一定的线性关系
+R <- 999
+z <- c(x, y) #pooled sample
+K <- 1:(2*n)
+reps <- numeric(R) #storage for replicates
+rho0 <- cor(x, y, method = "spearman")
+for (i in 1:R) {
+#generate indices k for the first sample
+k <- sample(K, size = n, replace = FALSE)
+x1 <- z[k]
+y1 <- z[-k] #complement of x1
+reps[i] <- cor(x1,y1, method = "spearman") 
+}
+p<-mean(abs(c(rho0,reps))>=abs(rho0))
+cat("原始Spearman秩相关系数:", rho0, "\n")  
+cat("置换检验得到的p值:", p, "\n")  
+cat("cor.test函数得到的p值:",cor.test(x, y, method = "spearman")$p.value, "\n")
+```
+
+# HW6
+
+## 1、9.3
+
+```{r}
+# 设置参数
+set.seed(1234)  
+theta <- 1  
+eta <- 0     # Cauchy
+n <- 5000    # 生成样本的总数量
+burn_in <- 1000   # 丢弃的前1000个样本
+samples <- numeric(n)
+samples[1] <- rnorm(1)  # 初始化链的第一个样本
+
+for (i in 2:n) {
+  candidate <- samples[i - 1] + rnorm(1, mean = 0, sd = 1)
+  alpha <- min(1, (dcauchy(candidate, location = eta, scale = theta)))
+  if (runif(1) < alpha) {
+    samples[i] <- candidate
+  } else {
+    samples[i] <- samples[i - 1]
+  }# 接受或拒绝候选样本
+}
+samples <- samples[(burn_in + 1):n]#丢弃前1000个样本
+gene_qt <- quantile(samples, probs = seq(0.1, 0.9, by = 0.1))#产生的样本分位数
+theo_qt <- qcauchy(seq(0.1, 0.9, by = 0.1), location = eta, scale = theta)#理论分位数
+result <- data.frame(Decile = seq(0.1, 0.9, by = 0.1),
+                     Generated = gene_qt,
+                     Theoretical = theo_qt)
+print(result)
+plot(seq(0.1, 0.9, by = 0.1), gene_qt, type = "b", pch = 19, col = "blue",
+     xlab = "Decile", ylab = "Quantiles", main = "Comparison of Deciles")
+points(seq(0.1, 0.9, by = 0.1), theo_qt, type = "b", pch = 19, col = "red")
+legend("topright", legend = c("Generated", "Theoretical"), col = c("blue", "red"), pch = 19)
+```
+
+观察图像可知，Metropolis-Hastings采样器产生的柯西分布样本的十分位数与理论值较为接近。
+
+## 2、9.8
+
+选定a=2，b=3，n=10进行模拟
+
+```{r}
+set.seed(1234)
+a <- 2 
+b <- 3 
+n <- 10 
+iterations <- 5000  # 迭代次数
+burn_in <- 1000
+x_samples <- numeric(iterations)
+y_samples <- numeric(iterations)
+y_samples[1] <- 0.5  # 初始化 y 值
+for (i in 2:iterations) {
+  x_samples[i] <- rbinom(1, size = n, prob = y_samples[i - 1])#根据当前y值获得x
+  y_samples[i] <- rbeta(1, shape1 = x_samples[i] + a, shape2 = n - x_samples[i] + b)#根据当前x值获得y
+}
+x_samples <- x_samples[(burn_in + 1):iterations]
+y_samples <- y_samples[(burn_in + 1):iterations]#丢弃
+
+plot(x_samples, type = "l", col = "blue", lwd = 1.5,
+     main = "Gibbs", xlab = "Index", ylab = "Random numbers",
+     ylim = range(c(x_samples, y_samples))) 
+lines(y_samples, type = "l", col = "red", lwd = 1.5) 
+legend("topright", legend = c("x values", "y values"), col = c("blue", "red"), lwd = 1.5)
+```
+
+## 3、
+
+9.3
+
+```{r}
+library(coda)
+set.seed(1)
+iterations <- 5000  
+burn_in <- 1000  
+num_chains <- 3    
+target_dist <- function(x) dcauchy(x)  #标准柯西分布
+MH_sampler <- function(init, n_iter, proposal_sd = 1) {
+  x <- numeric(n_iter)
+  x[1] <- init
+  for (i in 2:n_iter) {
+    proposal <- rnorm(1, mean = x[i - 1], sd = proposal_sd)
+    accept_prob <- min(1, target_dist(proposal) / target_dist(x[i - 1]))
+    x[i] <- ifelse(runif(1) < accept_prob, proposal, x[i - 1])
+  }
+  return(x)
+}
+chains <- matrix(NA, nrow = iterations - burn_in, ncol = num_chains)
+for (chain in 1:num_chains) {
+  init_value <- rnorm(1) 
+  full_chain <- MH_sampler(init_value, iterations)
+  chains[, chain] <- full_chain[(burn_in + 1):iterations]  # 丢弃
+}
+mcmc_chains <- mcmc.list(lapply(1:num_chains, function(i) mcmc(chains[, i])))
+gelman_results <- gelman.diag(mcmc_chains)
+print(gelman_results)
+
+
+```
+
+观察结果可知此时链收敛
+
+9.8
+
+```{r}
+library(coda)
+set.seed(1)
+a <- 2  
+b <- 3  
+n <- 10  
+iterations <- 5000  
+burn_in <- 1000   
+num_chains <- 3   
+x_chains <- matrix(0, nrow = iterations - burn_in, ncol = num_chains)
+y_chains <- matrix(0, nrow = iterations - burn_in, ncol = num_chains)
+for (chain in 1:num_chains) {
+  x_samples <- numeric(iterations)
+  y_samples <- numeric(iterations)
+  y_samples[1] <- 0.5 
+  for (i in 2:iterations) {
+    x_samples[i] <- rbinom(1, size = n, prob = y_samples[i - 1])#根据当前y值获得x
+    y_samples[i] <- rbeta(1, shape1 = x_samples[i] + a, shape2 = n - x_samples[i] + b)#根据当前x值获得y
+  }
+  x_chains[, chain] <- x_samples[(burn_in + 1):iterations]
+  y_chains[, chain] <- y_samples[(burn_in + 1):iterations]
+}
+x_mcmc <- mcmc.list(lapply(1:num_chains, function(i) mcmc(x_chains[, i])))
+y_mcmc <- mcmc.list(lapply(1:num_chains, function(i) mcmc(y_chains[, i])))
+gelman_x <- gelman.diag(x_mcmc)
+gelman_y <- gelman.diag(y_mcmc)
+print(gelman_x)
+print(gelman_y)
+```
+观察结果可知此时链收敛
+
+# HW7
+
+## 1、
+
+11.3
+
+```{r}
+library(pracma)
+library(base)
+kth_term <- function(k, a, d) {#计算第k个式子
+  norm_a<-sqrt(sum(a^2))#欧式范数
+  numerator<-(-1)^k/(factorial(k)*2^k)*(norm_a)^(2*k+2)/((2*k+1)*(2*k+2))#前两项乘积
+  gamma_factor<-gamma((d+1)/2)*gamma(k+3/2)/gamma(k+d/2+1)#第三项
+  term <- numerator* gamma_factor
+  return(term)
+}
+
+sum_series <- function(a,d,tol=1e-10) {#求和
+  sum<-0
+  k<-0
+  repeat {
+    term<-kth_term(k, a, d)
+    sum<-sum+term
+    if(abs(term)<tol) break
+    k<-k+1
+  }
+  return(sum)
+}
+
+a<-c(1, 2)
+d<-length(a)
+sum_series(a, d)#给定a=(1,2)^T时求和结果
+
+```
+
+## 2、11.5
+
+```{r}
+library(stats)
+c_k<-function(a,k){
+  return(sqrt(((a^2)*k)/(k+1-a^2)))
+}
+LHS<-function(a,k){#等号左边
+  ck_1<-c_k(a,k-1)
+  if (is.nan(ck_1) || ck_1 <= 0) {
+    return(NA)  # 返回 NA 以避免无效积分
+  }
+  integrand<-function(u){#积分项
+    (1+(u^2)/(k-1))^(-k/2)
+  }
+  integral_result<-integrate(integrand,0,ck_1)$value
+  (2*gamma(k/2))/(sqrt(pi*(k-1))*gamma((k-1)/2))*integral_result
+}
+RHS<-function(a,k){#等号右边
+  ck<-c_k(a, k)
+  if (is.nan(ck) || ck <= 0) {
+    return(NA)  # 返回 NA 以避免无效积分
+  }
+  integrand<-function(u){#积分项
+    (1+(u^2)/k)^(-(k+1)/2)
+  }
+  integral_result<-integrate(integrand,0,ck)$value
+  (2*gamma((k+1)/2))/(sqrt(pi*k)*gamma(k/2))*integral_result
+}
+objective_function<-function(a,k){#差值函数，越接近0说明LHS与RHS越接近
+  LHS(a,k)-RHS(a,k)
+}
+find_intersection<-function(k){
+suppressWarnings({
+result<-optimize(function(a) {#寻找一个使得差值函数绝对值最接近0的值
+  obj_val <- objective_function(a,k)
+  if (is.na(obj_val)) return(Inf)  #如果值为NA,返回无穷大，表示不适合的解
+  abs(obj_val)
+}, c(0.01,sqrt(k)))
+})
+return(result$minimum)
+}
+k_values <- c(4, 25, 100, 500, 1000)
+results <- sapply(k_values, find_intersection)
+rbind(k_values,results)
+```
+
+结果展示了当k分别取4,25,100,500,1000时，满足方程的a的近似解。
+
+与11.4中的A(k)比较：
+
+11.4
+
+```{r}
+library(stats)
+S_k_1 <- function(a, k) {
+  threshold<-sqrt(a^2*(k-1)/(k-a^2))
+  pt(threshold, df=k-1,lower.tail=FALSE)
+}
+S_k <- function(a, k) {
+  threshold<-sqrt(a^2*k/(k+1-a^2))
+  pt(threshold, df = k, lower.tail = FALSE)
+}
+objective_function <- function(a, k) {#差值函数
+  S_k_1(a, k)-S_k(a, k)
+}
+
+find_intersection <- function(k) {#求根
+  result <- tryCatch({
+    uniroot(function(a) objective_function(a, k), c(0.01, sqrt(k) - 0.01))$root
+  }, error = function(e) NA)  
+  return(result)
+}
+
+k_values <- c(4, 25, 100, 500, 1000)
+results <- sapply(k_values, find_intersection)
+rbind(k_values,results)
+
+```
+
+经过比较可知，11.5中方程的近似解与11.4中A(k)的值近似相等。
+
+## 3、
+
+由于$T_i\sim exp(\lambda)$，所以$f_{T_i}(t)=\lambda e^{-\lambda t}$，因此
+$$f_{T_i|T_i>\tau}(t)=\frac{f_{T_i}(t)}{P(T_i>\tau)}=\frac{\lambda e^{-\lambda t}}{e^{-\lambda \tau}}=\lambda e^{-\lambda (t-\tau)}$$
+观察概率密度函数可知这是一个偏移的条件分布，因此
+$$E(T_i|T_i>\tau)=\tau+\frac{1}{\lambda}$$
+因此更新后的$\lambda$为
+$$\lambda_{new}=\frac{n}{\sum[T_i I(T_i<\tau)+E(T_i|T_i>\tau)I(T_i>\tau)]}$$
+```{r}
+data<-c(0.54,0.48,0.33,0.43,1.00,1.00,0.91,1.00,0.21,0.85)
+tau<-1 
+lambda<-1  #给定的初始λ值
+n<-length(data)
+max_iter<-100
+tol<-1e-6  
+for (iter in 1:max_iter) {#EM算法
+  expected_censored<-sum((data==tau)*(tau+1/lambda))#E步,计算T_i>tau时T_i的期望值
+  lambda_new<-n/(sum(data[data<tau])+expected_censored)#M步
+  if(abs(lambda_new-lambda)<tol){
+    lambda<-lambda_new
+    break
+  }
+  lambda<-lambda_new
+}
+lambda_mle<-1/mean(data)#MLE
+lambda
+lambda_mle
+
+```
+
+
+# HW8
+
+## 1、11.7
+
+```{r}
+library(boot) #for simplex function
+A1 <- rbind(c(2, 1, 1), c(1, -1, 3))
+b1 <- c(2, 3)
+a <- c(4, 2, 9)
+simplex(a = a, A1 = A1, b1 = b1, maxi = FALSE)
+```
+因此当$x=y=z=0$时，$4x+2y+9z$有最小值0
+
+## 2、advanced R P204 3
+
+```{r}
+formulas <- list(
+mpg ~ disp,
+mpg ~ I(1 / disp),
+mpg ~ disp + wt,
+mpg ~ I(1 / disp) + wt
+)
+for_loops<-list()
+for (i in 1:length(formulas)) {#使用for循环
+  for_loops[[i]]<-lm(formulas[[i]],data = mtcars)
+}
+for_loops
+lapply(formulas, function(formula) lm(formula,data = mtcars))#使用lappy函数
+```
+
+## 3、advanced R P204 4
+
+```{r}
+bootstraps <- lapply(1:10, function(i) {
+rows <- sample(1:nrow(mtcars), rep = TRUE)
+mtcars[rows, ]
+})
+for_loops<-list()
+for (i in 1:length(bootstraps)) {#使用for循环
+  for_loops[[i]]<-lm(mpg~disp,data = bootstraps[[i]])
+}
+for_loops
+lapply(bootstraps, function(boo) lm(mpg~disp,data = boo))#使用lappy函数
+```
+
+## 4、advanced R P204 5
+
+第三题：
+
+```{r}
+rsq <- function(mod) summary(mod)$r.squared
+formulas <- list(
+mpg ~ disp,
+mpg ~ I(1 / disp),
+mpg ~ disp + wt,
+mpg ~ I(1 / disp) + wt
+)
+for_loops<-list()
+r_for<-numeric(length(formulas))
+for (i in 1:length(formulas)) {#使用for循环
+  for_loops[[i]]<-lm(formulas[[i]],data = mtcars)
+  r_for[i]<-rsq(for_loops[[i]])
+}
+r_for
+la<-function(formula){
+  mod<-lm(formula,data = mtcars)
+  rsq(mod)
+}
+lapply(formulas,la)#使用lappy函数
+```
+
+第四题：
+
+```{r}
+rsq <- function(mod) summary(mod)$r.squared
+bootstraps <- lapply(1:10, function(i) {
+rows <- sample(1:nrow(mtcars), rep = TRUE)
+mtcars[rows, ]
+})
+for_loops<-list()
+r_for<-numeric(length(bootstraps))
+for (i in 1:length(bootstraps)) {#使用for循环
+  for_loops[[i]]<-lm(mpg~disp,data = bootstraps[[i]])
+  r_for[i]<-rsq(for_loops[[i]])
+}
+r_for
+la<-function(boo){
+  mod<-lm(mpg~disp,data = boo)
+  rsq(mod)
+}
+lapply(bootstraps, la)#使用lappy函数
+```
+
+## 5、advanced R P213 3
+
+使用sapply和匿名函数
+
+```{r}
+set.seed(1234)
+trials <- replicate(
+100,
+t.test(rpois(10, 10), rpois(7, 10)),
+simplify = FALSE
+)
+sapply(trials,function(x) x$p.value)
+```
+
+直接用[[
+
+```{r}
+set.seed(1234)
+trials <- replicate(
+100,
+t.test(rpois(10, 10), rpois(7, 10)),
+simplify = FALSE
+)
+sapply(trials, '[[',"p.value")
+```
+
+## 6、advanced R P214 6
+
+```{r}
+lapply1<-function(fun,...,fun.value){#lapply函数的variant
+  inputs<-list(...)
+  res<-Map(fun,...)
+  vapply(res,identity,FUN.VALUE = fun.value)
+}
+
+#举例，输入三个列表，计算它们对应元素的和，并以向量的形式返回
+x<-list(1,2,3,4)
+y<-list(5,6,7,8)
+z<-list(2,4,6,8)
+add<-function(a,b,c){
+  a+b+c
+}
+lapply1(add,x,y,z,fun.value = numeric(1))
+```
+
+由函数的定义及例子可知，该函数应该采用三个参数：
+1、fun：应用于输入列表的函数
+2、...：多个输入列表
+3、fun.value：指定返回值的类型和长度
+
+## 7、advanced R P365 4
+
+```{r}
+chisq_quick<-function(x,y){
+  x_lev<-unique(x)
+  y_lev<-unique(y)
+  obs<-matrix(0,nrow = length(x_lev),ncol = length(y_lev))
+  for (i in seq_along(x)) {
+    x_index<-which(x_lev==x[i])
+    y_index<-which(y_lev==y[i])
+    obs[x_index,y_index]<-obs[x_index,y_index]+1
+  }
+  exp<-outer(rowSums(obs),colSums(obs))/sum(obs)
+  chi<-sum((obs-exp)^2/exp)
+  return(chi)
+}
+```
+
+## 8、advanced R P365 5
+
+```{r}
+set.seed(1234)
+chisq_quick1<-function(x,y){
+  obs<-table(x,y)
+  exp<-outer(rowSums(obs),colSums(obs))/sum(obs)
+  chi<-sum((obs-exp)^2/exp)
+  return(chi)
+}
+#举例比较
+a<-sample(1:10,1e6,replace = T)
+b<-sample(1:10,1e6,replace = T)
+system.time(chisq_quick(a,b))
+system.time(chisq_quick1(a,b))
+```
+
+由结果可知table()版本的卡方检验速度显著提升了
+
+
+# HW9
+
+## 1、用Rcpp实现
+
+取n=10，a=3，b=5
+
+```{r}
+library(RcppArmadillo)
+library(SA24204177)
+n<-10
+a<-3
+b<-5
+N<-1000
+out<-200
+res_rcpp<-Gibbs(n,a,b,N,out)
+plot(res_rcpp[,1],res_rcpp[,2],pch=20,col=rgb(0,0,1,0.5),xlab = "x",ylab = "y",main = "Rcpp")
+
+```
+
+## 2、用R实现
+
+```{r}
+set.seed(1234)
+gibbs_r<-function(n,a,b,N,out){
+  res_rx<- numeric(N)
+  res_ry<- numeric(N)
+  res_ry[1] <- 0.5
+  for (i in 2:N) {
+    res_rx[i] <- rbinom(1,n,res_ry[i-1])
+    res_ry[i] <- rbeta(1,res_rx[i]+a,n-res_rx[i]+b)
+  }
+  cbind(res_rx,res_ry)
+}
+res_r<-gibbs_r(n,a,b,N,out)
+#比较x
+qqplot(res_rcpp[, 1],res_r[,1], 
+       main = "x",
+       xlab = "Rcpp Samples", ylab = "R Samples", pch = 20, col = "blue")
+abline(0, 1, col = "red", lwd = 2)
+#比较y
+qqplot(res_rcpp[, 2],res_r[,2], 
+       main = "y",
+       xlab = "Rcpp Samples", ylab = "R Samples", pch = 20, col = "green")
+abline(0, 1, col = "red", lwd = 2)
+```
+
+## 3、比较运行时间
+
+```{r}
+library(microbenchmark)
+ts<-microbenchmark(Rcpp=Gibbs(n,a,b,N,out),R=gibbs_r(n,a,b,N,out))
+summary(ts)[,c(1,3,5,6)]
+```
+
+## 4、评论
+
+根据结果可以看出，Rcpp函数所需运行时间显著小于R函数，因此Rcpp函数具有更好的性能。
