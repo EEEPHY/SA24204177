@@ -1,0 +1,18 @@
+Package: SA24204177
+Type: Package
+Title: A Comprehensive Missing Data Solver
+Version: 1.1.0
+Author: Yifei Zhu
+Maintainer: Yifei Zhu <zyfshanshan@mail.ustc.edu.cn>
+Description: Several R and Rcpp functions are included in this package for solving the problem of missing data.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Imports: Rcpp, missForest, randomForest, microbenchmark, RcppArmadillo, VIM, ggplot2, MASS, boot,
+    DAAG, bootstrap, coda, pracma, base
+LinkingTo: Rcpp, RcppArmadillo
+RoxygenNote: 7.3.2
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+URL: http://github.com/EEEPHY/SA24204177
+BugReports: http://github.com/EEEPHY/SA24204177/issues

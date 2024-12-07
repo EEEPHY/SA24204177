@@ -1,0 +1,81 @@
+---
+title: "intro"
+author: "Yifei Zhu"
+date: "2023-12-08"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{intro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# 1、功能介绍
+
+我的R包可以通过EM、SVD、KNN和RandomForest这4种不同的方法对一个含有缺失数据的数据集进行填补，并比较它们的计算速度。
+
+# 2、R包中的函数介绍
+
+## 1、Rcpp函数em_impute()和R函数em_impute()
+
+这两个函数实现了一个基于 EM 算法的填充方法。它首先使用均值填充缺失值，然后计算已知值的协方差矩阵，再使用这个协方差矩阵与已有的观测值来预测缺失值，通过迭代优化填补，直到数据填充趋于稳定（收敛）。
+
+## 2、R函数svd_impute()
+
+这个函数利用奇异值分解（SVD）和矩阵重构的思想，通过迭代过程填补矩阵中的缺失数据。每次迭代通过对矩阵进行低秩近似，逐步优化缺失值的估计，直到填补结果稳定。
+
+## 3、R函数knn_impute()和R函数random-forest_impute()
+
+这两个函数直接利用了VIM和missForest这两个R包。
+
+## 4、R函数compare_imputation()
+
+这个函数利用microbenchmark包，比较了以上四种方法的运行时间。
+
+# 3、R包功能示范
+
+数据产生：
+
+```{r}
+
+set.seed(123)
+n <- 200
+x1 <- rnorm(n, mean = 5, sd = 2)#服从正态分布
+x2 <- runif(n, min = 0, max = 10)#服从均匀分布
+x3 <- rexp(n, rate = 1)#服从指数分布
+data_full <- as.matrix(data.frame(x1 = x1, x2 = x2, x3 = x3))
+data_with_na<-data_full
+data_with_na[sample(1:(3*n), 3*n*0.1)] <- NA #以0.1的缺失率对原始数据做随机缺失处理
+```
+
+比较运行时间：
+
+```{r}
+library(SA24204177)
+print(compare_imputation(data_with_na))
+```
+
+比较RMSE：
+
+```{r}
+
+rmse<-function(A_full,A_imputed){
+  squared_diffs <- (A_full - A_imputed)^2
+  mean_squared_diff <- mean(squared_diffs)
+  rmse <- sqrt(mean_squared_diff)
+  return(rmse)
+}
+  em_imputed <- as.matrix(em_impute(data_with_na))
+  rf_imputed <- as.matrix(random_forest_impute(data_with_na))
+  svd_imputed <- as.matrix(svd_impute(data_with_na))
+  knn_imputed <- as.matrix(knn_impute(data_with_na))
+
+list(
+  EM=rmse(data_full,em_imputed),
+  randomForest=rmse(data_full,rf_imputed),
+  SVD=rmse(data_full,svd_imputed),
+  KNN=rmse(data_full,knn_imputed)
+)
+
+```
+
+
